@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SoundCloud to MP3 Converter - Free Audio Download</title>
+    <meta name="description" content="Convert SoundCloud tracks to MP3, WAV, or AAC format. Fast, free, and easy to use online converter.">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>🎵 SoundCloud to MP3 Converter</h1>
+            <p class="subtitle">Convert your favorite SoundCloud tracks to high-quality audio files</p>
+        </header>
+
+        <div class="donation-banner">
+            <p class="donation-text">
+                <span class="donation-emoji">☕</span>
+                <strong>Help keep this service running!</strong> Your donations help cover server costs.
+                <a href="https://venmo.com/u/b-howell-21" target="_blank" rel="noopener" class="donation-link">
+                    Buy a fellow music lover a coffee
+                </a>
+            </p>
+        </div>
+
+        <main class="main-content">
+            <div class="converter-card">
+                <form id="downloadForm" class="download-form">
+                    <div class="form-group">
+                        <label for="url" class="form-label">
+                            <span class="label-text">SoundCloud URL</span>
+                            <span class="label-hint">Paste the link to any SoundCloud track</span>
+                        </label>
+                        <div class="input-wrapper">
+                            <input 
+                                type="url" 
+                                id="url" 
+                                name="url" 
+                                class="form-input" 
+                                placeholder="https://soundcloud.com/artist/track-name"
+                                required
+                                autocomplete="off"
+                            >
+                            <button type="button" id="infoBtn" class="info-btn" title="Get track info">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <path d="m9 12 2 2 4-4"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="trackInfo" class="track-info hidden">
+                        <div class="track-details">
+                            <h3 id="trackTitle">Track Title</h3>
+                            <p id="trackArtist">Artist</p>
+                            <p id="trackDuration">Duration</p>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="format" class="form-label">
+                                <span class="label-text">Audio Format</span>
+                            </label>
+                            <select id="format" name="format" class="form-select">
+                                <option value="mp3">MP3 (Most Compatible)</option>
+                                <option value="wav">WAV (Lossless)</option>
+                                <option value="aac">AAC (High Quality)</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group" id="qualityGroup">
+                            <label for="quality" class="form-label">
+                                <span class="label-text">Quality</span>
+                            </label>
+                            <select id="quality" name="quality" class="form-select">
+                                <option value="128">128 kbps (Small file)</option>
+                                <option value="192" selected>192 kbps (Good quality)</option>
+                                <option value="256">256 kbps (High quality)</option>
+                                <option value="320">320 kbps (Best quality)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <button type="submit" id="downloadBtn" class="download-btn">
+                        <span class="btn-text">Download</span>
+                        <div class="btn-spinner hidden">
+                            <div class="spinner"></div>
+                        </div>
+                    </button>
+                </form>
+
+                <div id="progressContainer" class="progress-container hidden">
+                    <div class="progress-bar">
+                        <div class="progress-fill"></div>
+                    </div>
+                    <p class="progress-text">Processing your download...</p>
+                </div>
+
+                <div id="messageContainer" class="message-container"></div>
+            </div>
+
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">🚀</div>
+                    <h3>Fast & Reliable</h3>
+                    <p>Quick downloads with high-quality audio conversion</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔒</div>
+                    <h3>Privacy First</h3>
+                    <p>Files are automatically deleted after download</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📱</div>
+                    <h3>Mobile Friendly</h3>
+                    <p>Works perfectly on all devices and screen sizes</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">💯</div>
+                    <h3>100% Free</h3>
+                    <p>No registration, no limits, completely free to use</p>
+                </div>
+            </div>
+
+            <div class="instructions">
+                <h2>How to Use</h2>
+                <ol class="steps-list">
+                    <li>Copy the URL of any SoundCloud track</li>
+                    <li>Paste it in the input field above</li>
+                    <li>Choose your preferred audio format and quality</li>
+                    <li>Click "Download" and wait for processing</li>
+                    <li>Your file will download automatically when ready</li>
+                </ol>
+            </div>
+        </main>
+
+        <footer class="footer">
+            <p>
+                Made with ❤️ for music lovers |
+                <a href="https://liveocnj.com" target="_blank" rel="noopener">Visit liveocnj.com</a>
+            </p>
+            <p class="disclaimer">
+                This tool is for personal use only. Please respect artists' rights and SoundCloud's terms of service.
+            </p>
+        </footer>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>

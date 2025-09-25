@@ -1,0 +1,10 @@
+Flask==2.3.3
+yt-dlp==2023.9.24
+gunicorn==21.2.0
+python-dotenv==1.0.0
+redis==5.0.0
+celery==5.3.4
+flask-cors==4.0.0
+flask-limiter==3.5.0
+requests==2.31.0
+validators==0.22.0

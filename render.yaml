@@ -1,0 +1,31 @@
+services:
+  - type: web
+    name: soundcloud-to-mp3-converter
+    env: python
+    region: oregon
+    plan: free
+    buildCommand: |
+      pip install --upgrade pip
+      pip install -r requirements.txt
+      pip install --upgrade yt-dlp
+    startCommand: gunicorn --config gunicorn.conf.py app:app
+    healthCheckPath: /health
+    envVars:
+      - key: FLASK_ENV
+        value: production
+      - key: SECRET_KEY
+        generateValue: true
+      - key: PORT
+        value: 5000
+      - key: DOWNLOADS_DIR
+        value: ./downloads
+      - key: MAX_FILE_SIZE
+        value: 104857600
+      - key: LOG_LEVEL
+        value: INFO
+      - key: ALLOWED_DOMAINS
+        value: soundcloud.com,on.soundcloud.com,m.soundcloud.com
+    disk:
+      name: downloads
+      mountPath: /app/downloads
+      sizeGB: 1

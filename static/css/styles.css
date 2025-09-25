@@ -117,6 +117,13 @@ body {
     text-decoration: none !important;
 }
 
+.donation-username {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    font-style: italic;
+    margin-left: 5px;
+}
+
 /* Main content */
 .main-content {
     flex: 1;

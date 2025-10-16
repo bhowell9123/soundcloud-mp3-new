@@ -5,9 +5,9 @@ services:
     region: oregon
     plan: free
     buildCommand: |
+      apt-get update && apt-get install -y ffmpeg
       pip install --upgrade pip
       pip install -r requirements.txt
-      pip install --upgrade yt-dlp
     startCommand: gunicorn --config gunicorn.conf.py app:app
     healthCheckPath: /health
     envVars:

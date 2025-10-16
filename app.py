@@ -290,13 +290,18 @@ def get_track_info():
 def download_route():
     """
     Handles GET, POST, and HEAD requests:
-    - GET/HEAD: Serves the template for user input
+    - GET: Serves the template for user input
+    - HEAD: Returns empty response with 200 status
     - POST: Handles the SoundCloud MP3 download
     """
-    if request.method in ["GET", "HEAD"]:
+    if request.method == "HEAD":
+        # Return empty response for HEAD requests (used by health checks)
+        return "", 200
+    
+    if request.method == "GET":
         return render_template('index.html')
     
-    elif request.method == "POST":
+    if request.method == "POST":
         try:
             # Handle both JSON and form data
             if request.is_json:

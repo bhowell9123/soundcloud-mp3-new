@@ -194,7 +194,13 @@ class SoundCloudConverter {
                 document.body.removeChild(a);
                 window.URL.revokeObjectURL(downloadUrl);
                 
-                this.showMessage('Download completed successfully!', 'success');
+                // Check if this might be a preview (file size < 1MB)
+                const fileSizeMB = blob.size / (1024 * 1024);
+                if (fileSizeMB < 1) {
+                    this.showMessage('⚠️ Download completed - This appears to be a 30-second preview. Full track may require SoundCloud Go+ subscription.', 'warning');
+                } else {
+                    this.showMessage('Download completed successfully!', 'success');
+                }
             } else {
                 const errorData = await response.json();
                 this.showMessage(errorData.error || 'Download failed', 'error');

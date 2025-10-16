@@ -168,6 +168,14 @@ def download_soundcloud_to_mp3(soundcloud_url, audio_format="mp3", quality="192"
             check=True
         )
         
+        # Check for preview-only warnings in the output
+        if result.stdout and 'preview' in result.stdout.lower():
+            logger.warning(f"Track may be preview-only: {soundcloud_url}")
+            # Check if only preview formats were available
+            if 'preview' in result.stdout and 'Available formats' in result.stdout:
+                # Continue with download but warn that it might be preview only
+                pass
+        
         # Find the downloaded file
         downloaded_files = [
             f for f in os.listdir(DOWNLOADS_DIR) 
@@ -188,11 +196,19 @@ def download_soundcloud_to_mp3(soundcloud_url, audio_format="mp3", quality="192"
         
         logger.info(f"Download completed: {filename} ({file_size} bytes)")
         
+        # Check if file size suggests it's a preview (typically < 1MB for 30-second clips)
+        is_likely_preview = file_size < 1048576  # 1MB
+        message = "Download completed successfully"
+        if is_likely_preview:
+            message = "Download completed (Note: This may be a 30-second preview. Full track might require SoundCloud Go+)"
+            logger.warning(f"Small file size ({file_size} bytes) suggests this is a preview")
+        
         return {
             "success": True,
             "filename": filename,
             "file_size": file_size,
-            "message": "Download completed successfully"
+            "message": message,
+            "is_preview": is_likely_preview
         }
         
     except subprocess.TimeoutExpired:

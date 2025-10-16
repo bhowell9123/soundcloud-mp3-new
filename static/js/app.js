@@ -166,9 +166,22 @@ class SoundCloudConverter {
                 const contentDisposition = response.headers.get('Content-Disposition');
                 let filename = 'download.' + format;
                 if (contentDisposition) {
-                    const filenameMatch = contentDisposition.match(/filename="(.+)"/);
+                    // Try multiple patterns to extract filename
+                    // Pattern 1: filename="..." (with quotes)
+                    let filenameMatch = contentDisposition.match(/filename="([^"]+)"/);
+                    if (!filenameMatch) {
+                        // Pattern 2: filename=... (without quotes)
+                        filenameMatch = contentDisposition.match(/filename=([^;]+)/);
+                    }
+                    if (!filenameMatch) {
+                        // Pattern 3: filename*=UTF-8''... (RFC 5987 encoded)
+                        filenameMatch = contentDisposition.match(/filename\*=UTF-8''([^;]+)/);
+                    }
+                    
                     if (filenameMatch) {
-                        filename = filenameMatch[1];
+                        filename = decodeURIComponent(filenameMatch[1].trim());
+                        // Remove any remaining quotes
+                        filename = filename.replace(/^["']|["']$/g, '');
                     }
                 }
                 

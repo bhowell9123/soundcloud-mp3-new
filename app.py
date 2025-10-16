@@ -123,6 +123,11 @@ def download_soundcloud_to_mp3(soundcloud_url, audio_format="mp3", quality="192"
         missing_deps = check_dependencies()
         if missing_deps:
             raise DownloadError(f"Missing dependencies: {', '.join(missing_deps)}")
+            
+        # Check if URL is a playlist
+        is_playlist = '/sets/' in soundcloud_url.lower()
+        if is_playlist:
+            logger.info(f"Playlist detected: {soundcloud_url} - This may take longer to process")
         
         # Generate unique filename
         job_id = str(uuid.uuid4())[:8]
@@ -136,15 +141,15 @@ def download_soundcloud_to_mp3(soundcloud_url, audio_format="mp3", quality="192"
                 "preferredquality": quality
             }
         
-        # Construct the yt-dlp command
+        # Construct the yt-dlp command with verbose output for better error tracking
         output_template = f"{DOWNLOADS_DIR}/{timestamp}_{job_id}_%(title)s.%(ext)s"
         command = [
             "yt-dlp",
             "--extract-audio",
             "--audio-format", audio_format.lower(),
             "--output", output_template,
-            "--no-playlist",
             "--max-filesize", str(MAX_FILE_SIZE),
+            "--verbose",  # Add verbose flag for detailed error logging
             soundcloud_url
         ]
         
@@ -159,7 +164,7 @@ def download_soundcloud_to_mp3(soundcloud_url, audio_format="mp3", quality="192"
             command,
             capture_output=True,
             text=True,
-            timeout=300,  # 5 minutes timeout
+            timeout=300,  # 5 minutes timeout for playlists
             check=True
         )
         
@@ -193,14 +198,32 @@ def download_soundcloud_to_mp3(soundcloud_url, audio_format="mp3", quality="192"
     except subprocess.TimeoutExpired:
         raise DownloadError("Download timeout - file may be too large or connection slow")
     except subprocess.CalledProcessError as e:
-        error_msg = e.stderr.decode() if e.stderr else str(e)
+        error_msg = e.stderr if e.stderr else e.stdout if e.stdout else str(e)
+        logger.error(f"yt-dlp error output: {error_msg}")
+        
+        # Parse specific error patterns
         if "Private video" in error_msg or "not available" in error_msg:
             raise DownloadError("Track is private or not available")
         elif "Unsupported URL" in error_msg:
             raise DownloadError("Unsupported SoundCloud URL")
+        elif "HTTP Error 404" in error_msg:
+            raise DownloadError("Track not found (404). The track may have been removed or the URL is incorrect")
+        elif "HTTP Error 403" in error_msg:
+            raise DownloadError("Access forbidden (403). The track may be restricted in your region")
+        elif "unable to obtain file audio codec" in error_msg or "ffprobe" in error_msg:
+            raise DownloadError("Audio conversion failed. The track format may not be supported. Please try updating yt-dlp: pip install --upgrade yt-dlp")
+        elif "ERROR:" in error_msg:
+            # Extract the specific error message after ERROR:
+            error_lines = [line for line in error_msg.split('\n') if 'ERROR:' in line]
+            if error_lines:
+                specific_error = error_lines[0].split('ERROR:', 1)[1].strip()
+                raise DownloadError(f"Download failed: {specific_error}")
+            else:
+                raise DownloadError(f"Download failed: {error_msg[:500]}")  # Limit error message length
         else:
-            raise DownloadError(f"Download failed: {error_msg}")
+            raise DownloadError(f"Download failed. Please ensure yt-dlp is up to date: pip install --upgrade yt-dlp")
     except Exception as e:
+        logger.error(f"Unexpected error in download: {e}")
         raise DownloadError(f"Unexpected error: {str(e)}")
 
 @app.route("/health")
@@ -299,6 +322,28 @@ def download_route():
                 'timestamp': time.time()
             })
             
+            # Clean up the filename for the user download
+            # Remove the timestamp and UUID prefix to get just the track name
+            import re
+            clean_filename = filename
+            # Pattern to match timestamp_uuid_ prefix (e.g., 20241016_104520_abc12345_)
+            prefix_pattern = r'^\d{8}_\d{6}_[a-f0-9]{8}_'
+            clean_filename = re.sub(prefix_pattern, '', clean_filename)
+            
+            # Ensure the filename is not empty and has the proper extension
+            if not clean_filename or clean_filename == f'.{audio_format}':
+                clean_filename = f'soundcloud_track.{audio_format}'
+            
+            # Further clean the filename: replace problematic characters
+            clean_filename = re.sub(r'[^\w\s\-\.\(\)]', '', clean_filename)
+            clean_filename = re.sub(r'\s+', ' ', clean_filename).strip()
+            
+            # Ensure proper extension
+            if not clean_filename.endswith(f'.{audio_format}'):
+                clean_filename = f"{clean_filename}.{audio_format}"
+            
+            logger.info(f"Serving file as: {clean_filename}")
+            
             # Return file for download
             def remove_file(filepath):
                 try:
@@ -316,7 +361,7 @@ def download_route():
             return send_file(
                 file_path,
                 as_attachment=True,
-                download_name=filename,
+                download_name=clean_filename,
                 mimetype=f'audio/{audio_format}'
             )
             

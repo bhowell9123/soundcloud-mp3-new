@@ -136,7 +136,13 @@ class SoundCloudConverter {
             return;
         }
         
-        this.startDownload();
+        // Check if URL is a playlist
+        const isPlaylist = url.toLowerCase().includes('/sets/');
+        if (isPlaylist) {
+            this.showMessage('Playlist detected. Download may take longer than usual.', 'info');
+        }
+        
+        this.startDownload(isPlaylist);
         
         try {
             const formData = new FormData();
@@ -188,14 +194,14 @@ class SoundCloudConverter {
         }
     }
     
-    startDownload() {
+    startDownload(isPlaylist = false) {
         this.isDownloading = true;
         this.downloadBtn.disabled = true;
         this.btnText.classList.add('hidden');
         this.btnSpinner.classList.remove('hidden');
         
         this.progressContainer.classList.remove('hidden');
-        this.simulateProgress();
+        this.simulateProgress(isPlaylist);
         
         this.clearMessages();
     }
@@ -215,7 +221,7 @@ class SoundCloudConverter {
         }
     }
     
-    simulateProgress() {
+    simulateProgress(isPlaylist = false) {
         let progress = 0;
         const steps = [
             { progress: 20, text: 'Validating URL...' },
@@ -225,6 +231,9 @@ class SoundCloudConverter {
             { progress: 95, text: 'Finalizing download...' }
         ];
         
+        // Adjust timing for playlists
+        const stepTime = isPlaylist ? 1500 : 1000; // Slightly longer steps for playlists
+        
         let stepIndex = 0;
         
         this.progressInterval = setInterval(() => {
@@ -233,13 +242,21 @@ class SoundCloudConverter {
                 progress = step.progress;
                 this.progressFill.style.width = progress + '%';
                 this.progressText.textContent = step.text;
+                
+                // For playlists, add additional info to the download step
+                if (isPlaylist && stepIndex === 2) {
+                    this.progressText.textContent = 'Downloading playlist tracks... (this may take a while)';
+                }
+                
                 stepIndex++;
             } else {
                 // Keep at 95% until actual completion
                 this.progressFill.style.width = '95%';
-                this.progressText.textContent = 'Almost ready...';
+                this.progressText.textContent = isPlaylist ?
+                    'Almost ready... (processing multiple tracks)' :
+                    'Almost ready...';
             }
-        }, 1000);
+        }, stepTime);
     }
     
     showMessage(message, type = 'info') {

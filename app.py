@@ -285,15 +285,15 @@ def get_track_info():
         logger.error(f"Error in get_track_info: {e}")
         return jsonify({"error": "Failed to get track information"}), 500
 
-@app.route("/", methods=["GET", "POST"])
+@app.route("/", methods=["GET", "POST", "HEAD"])
 @limiter.limit("5 per minute", methods=["POST"])
 def download_route():
     """
-    Handles GET and POST requests:
-    - GET: Serves the template for user input
+    Handles GET, POST, and HEAD requests:
+    - GET/HEAD: Serves the template for user input
     - POST: Handles the SoundCloud MP3 download
     """
-    if request.method == "GET":
+    if request.method in ["GET", "HEAD"]:
         return render_template('index.html')
     
     elif request.method == "POST":
